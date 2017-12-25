@@ -36,7 +36,7 @@ project-directory/
 
 为了防止 RequireJs 脚本加载阻塞页面渲染，可以将入口标签放置在 body 后面。或者使用 [async](http://www.growingwiththeweb.com/2014/02/async-vs-defer-attributes.html) 属性 。requirejs 加载完成后会根据入口 script 标签中的 *data-main* 属性加载入口文件并自动运行加载依赖。
 
-3. 在 main.js 中你可以使用 * requirejs()* 函数加载任何你需要执行的脚本。因为 data-main 属性指定的脚本是异步加载的，所以要确保唯一入口。
+3. 在 main.js 中你可以使用 **requirejs()** 函数加载任何你需要执行的脚本。因为 data-main 属性指定的脚本是异步加载的，所以要确保唯一入口。
 ```
 requirejs(["helper/util"], function(util) {
     // 当 js/helper/util.js 加载完成后这个函数会自动调用
