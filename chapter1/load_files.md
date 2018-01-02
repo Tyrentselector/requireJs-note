@@ -1,4 +1,4 @@
-# 加载 js 文件
+# 2.1 加载 js 文件
 
 RequireJs 采用与传统方式不同的脚本加载方式。它能更快更好的加载脚本，同时 RequireJs 主要目标是支持模块化编码。RequireJs 支持使用模块 ID 替代含有 URls 的 script 标签。
 

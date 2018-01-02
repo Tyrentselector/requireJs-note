@@ -7,3 +7,4 @@
     * [2.2 data-main 入口](./chapter1/entry_point.md)
     * [2.3 模块定义](./chapter1/define_module.md)
 * [3. 运行方式](./chapter2/mechanics.md)
+* [4. 配置选项](./chapter3/config_options.md)

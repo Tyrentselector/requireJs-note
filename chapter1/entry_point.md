@@ -1,4 +1,4 @@
-# data-main 入口
+# 2.2 data-main 入口
 
 data-main 是一个很特殊的属性 RequireJs 会自动检测它并加载指定脚本：
 ```
