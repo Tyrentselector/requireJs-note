@@ -104,3 +104,58 @@ define(['site'], function(site) {
 
 自 RequireJs 2.2.0 起，优化器可以生成包配置并将它插入到顶级 requirejs.config() 中调用。详见 [bundlesConfigOutFile ](https://github.com/requirejs/r.js/blob/98a9949480d68a781c8d6fc4ce0a07c16a2c8a2a/build/example.build.js#L641)。
 
+**shim**：为没有使用 **define()** 声明依赖和模块值的传统“浏览器全局”脚本配置依赖、exports 和自定义初始化值。
+
+下面这个例子，需要 RequireJs 2.1.0+，并假定 backbone.js, underscore.js 和 jquery.js 安装在 baseUrl 目录中。如果它们在其他目录中，那么我们就需要为他们设定路径配置：
+```
+requirejs.config({
+    // 注意：shim 仅能使用在那些没有使用 AMD 规范声明的脚本上，
+    // 这些脚本没有使用 define()。如果对 AMD 脚本使用 shim 配置
+    // 它将会出现错误，exports 和 init 配置不会被触发，同时 deps
+    // 配置将会变得混乱。
+    shim: {
+        'backbone': {
+            // 这些依赖脚本会在应该在 backbone.js 加载前完成加载
+            deps: ['underscore', 'jquery'],
+            // 一旦加载完成, 使用全局 'Backbone' 作为模块值
+            exports: 'Backbone'
+        },
+        'underscore': {
+            exports: '_'
+        },
+        'foo': {
+            deps: ['bar'],
+            exports: 'Foo',
+            init: function (bar) {
+                // 在这个函数中我们可以调用类库支持的 noConflict 方法，并做一些其它清理操作。
+                // 然而, 这些类库的插件可能依然期望获取这个类库的一个全局变量
+                // 在这个函数中 "this" 指向全局对象。依赖将会作为参数传入
+                // 如果这个函数返回一个值，那么这个值将会替代通过 'exports' 字符串
+                // 找到的对象作为模块的导出值。
+                // 注意：jQuery 注册器是一个通过 define() 定义的 AMD 模块。
+                // 所以这个配置对 jQuery 是不起作用的，在注意事项部分可以找到对应的处理方法。
+                return this.Foo.noConflict();
+            }
+        }
+    }
+});
+
+// 之后，在一个单独的文件中调用使用 AMD 规范定义的 'MyModel.js' 模块，
+// 并指定 'backbone' 作为它的一个依赖。RequireJs 将会根据 shim 配置
+// 正确的加载 'backbone' 并为这个模块提供一个本地引用。全局 Backbone
+// 依旧存在于这个页面中。
+define(['backbone'], function (Backbone) {
+  return Backbone.Model.extend({});
+});
+```
+
+对于 jQuery 或 Backbone 这类无需导出任何模块值的模块，shim 配置可以是一个依赖数组：
+```
+requirejs.config({
+    shim: {
+        'jquery.colorize': ['jquery'],
+        'jquery.scroll': ['jquery'],
+        'backbone.layoutmanager': ['backbone']
+    }
+});
+```
