@@ -167,7 +167,7 @@ require.config({
 
 或不配置 **paths** 或 **packages** 在顶级调用 *require* 时使用 **require(['compute/main'])**。
 
-相对于模块生成 URLs：我们可能会想相对某个模块生成一个 URL。将 "require" 作为依赖引入然后使用 **require.toUrl()** 来生成 URL：
+<a id="toUrl"></a>**相对于模块生成 URLs**：我们可能会想相对某个模块生成一个 URL。将 "require" 作为依赖引入然后使用 **require.toUrl()** 来生成 URL：
 ```
 define(["require"], function(require) {
     var cssUrl = require.toUrl("./style.css");
