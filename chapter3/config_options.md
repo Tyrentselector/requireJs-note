@@ -115,7 +115,7 @@ requirejs.config({
     // 配置将会变得混乱。
     shim: {
         'backbone': {
-            // 这些依赖脚本会在应该在 backbone.js 加载前完成加载
+            // 这些依赖脚本应该在 backbone.js 加载前完成加载
             deps: ['underscore', 'jquery'],
             // 一旦加载完成, 使用全局 'Backbone' 作为模块值
             exports: 'Backbone'
@@ -127,7 +127,7 @@ requirejs.config({
             deps: ['bar'],
             exports: 'Foo',
             init: function (bar) {
-                // 在这个函数中我们可以调用类库支持的 noConflict 方法，并做一些其它清理操作。
+                // 在这个函数中我们可以调用类库支持的 noConflict 方法，并做一些其它的初始化   操作。
                 // 然而, 这些类库的插件可能依然期望获取这个类库的一个全局变量
                 // 在这个函数中 "this" 指向全局对象。依赖将会作为参数传入
                 // 如果这个函数返回一个值，那么这个值将会替代通过 'exports' 字符串
@@ -159,3 +159,29 @@ requirejs.config({
     }
 });
 ```
+
+注意如果希望在 IE 中获取 404 加载检查以便使用**备用路径**或**错误回调**，那么**exports**选项应该被给定一个字符串类型的值，以便加载器用于检测脚本是否真的被加载了（**init** 配置项中的返回值不能用于 ```enforceDefine``` 检测）：
+```
+requirejs.config({
+    shim: {
+        'jquery.colorize': {
+            deps: ['jquery'],
+            exports: 'jQuery.fn.colorize'
+        },
+        'jquery.scroll': {
+            deps: ['jquery'],
+            exports: 'jQuery.fn.scroll'
+        },
+        'backbone.layoutmanager': {
+            deps: ['backbone']
+            exports: 'Backbone.LayoutManager'
+        }
+    }
+});
+```
+
+**关于 "shim" 配置的重要提示：**
+    - shim 配置仅能用于设置代码关系。只是配置 shim 并不会触发模块加载。加载模块还是要使用 require/define。
+    - 仅使用其他 "shim" 模块作为 "shim" 脚本的依赖项。一个模块如果它符合AMD规范，没有其他依赖，同时在调用 define() 后依旧创建全局变量 （例如 JQuery 和 Backbone）的类库也可以作为 "shim" 脚本的依赖。否则，如果使用一个 AMD 模块作为一个 "shim" 模块的依赖，在构建后，会引发一个错误。终极解决方案是将所有模块升级为一个可选的 AMD define()。
+    - 自 RequireJs 2.1.11起，优化器包含一个 [wrapShim build]() 配置项，在build时它会尝试自动为 "shim" 脚本包裹 define() 外壳。这会改变 "shim" 的依赖范围，所以这个方法不是总是有效的。但是，例如，一个 "shim" 脚本依赖符于合 AMD 规范的 Backbone，它是起作用的。
+    - 对于 AMD 模块 init 函数不会被调用。例如，我们无法使用 shim init 函数来调用 JQuery 的 noConflict。见 [ Mapping Modules]() 使用 JQuery 的 noConflict。
