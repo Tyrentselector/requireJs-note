@@ -181,7 +181,14 @@ requirejs.config({
 ```
 
 **关于 "shim" 配置的重要提示：**
-    - shim 配置仅能用于设置代码关系。只是配置 shim 并不会触发模块加载。加载模块还是要使用 require/define。
-    - 仅使用其他 "shim" 模块作为 "shim" 脚本的依赖项。一个模块如果它符合AMD规范，没有其他依赖，同时在调用 define() 后依旧创建全局变量 （例如 JQuery 和 Backbone）的类库也可以作为 "shim" 脚本的依赖。否则，如果使用一个 AMD 模块作为一个 "shim" 模块的依赖，在构建后，会引发一个错误。终极解决方案是将所有模块升级为一个可选的 AMD define()。
-    - 自 RequireJs 2.1.11起，优化器包含一个 [wrapShim build]() 配置项，在build时它会尝试自动为 "shim" 脚本包裹 define() 外壳。这会改变 "shim" 的依赖范围，所以这个方法不是总是有效的。但是，例如，一个 "shim" 脚本依赖符于合 AMD 规范的 Backbone，它是起作用的。
-    - 对于 AMD 模块 init 函数不会被调用。例如，我们无法使用 shim init 函数来调用 JQuery 的 noConflict。见 [ Mapping Modules]() 使用 JQuery 的 noConflict。
+    <a style="color: red;">不明白为什么不能在构建时同时使用CDN + shim</a>
+1. shim 配置仅能用于设置代码关系。只是配置 shim 并不会触发模块加载。加载模块还是要使用 require/define。
+2. 仅使用其他 "shim" 模块作为 "shim" 脚本的依赖项。一个模块如果它符合AMD规范，没有其他依赖，同时在调用 define() 后依旧创建全局变量 （例如 JQuery 和 Backbone）的类库也可以作为 "shim" 脚本的依赖。否则，如果使用一个 AMD 模块作为一个 "shim" 模块的依赖，在构建后，会引发一个错误。终极解决方案是将所有模块升级为 AMD 模块。
+3. 自 RequireJs 2.1.11起，优化器包含一个 [wrapShim build]() 配置项，在build时它会尝试自动为 "shim" 脚本包裹 define() 外壳。这会改变 "shim" 的依赖范围，所以这个方法不是总是有效的。但是，例如，一个 "shim" 脚本依赖符于合 AMD 规范的 Backbone，它是起作用的。
+4. 对于 AMD 模块 init 函数不会被调用。例如，我们无法使用 shim init 函数来调用 JQuery 的 noConflict。见 [ Mapping Modules]() 使用 JQuery 的 noConflict。
+
+**对于优化器 "shim" 配置的重要事项：**
+1. 我们应该使用 **mainConfigFile** 构建选项指定包含 **shim** 配置的文件。否则优化器无法知道 **shim** 配置。其他选项会复制构建配置中的 **shim** 配置。
+2. 如果我们要在构建时对代码进行混淆，**不要**设定混淆 ```toplevel``` 选项为 **true**，或使用 cli 时**不要**传入 ```-mt```。这个选项会破坏 **shim** 用于查找 **exports** 的全局变量名。
+
+**maps**：
