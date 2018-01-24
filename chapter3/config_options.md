@@ -22,7 +22,7 @@
 ```
 
 我们同样可以在 [data-main 入口](../chapter1/entry_point.md) 中调用 **require.config**，不过请注意 **data-main 脚本**是**异步加载**的。避免再出现其它入口，这些入口脚本会误以为 **data-main** 文件的加载和 data-main 文件中的 require.config 函数的执行会优先于这些脚本的加载。
-
+<a id="configBlock"></a>
 我们也可以在 require.js 加载前定义一个全局对象 **require**，它包含一些自动应用的值：
 ```
 <script>
@@ -105,6 +105,7 @@ define(['site'], function(site) {
 
 自 RequireJs 2.2.0 起，优化器可以生成包配置并将它插入到顶级 requirejs.config() 中调用。详见 [bundlesConfigOutFile ](https://github.com/requirejs/r.js/blob/98a9949480d68a781c8d6fc4ce0a07c16a2c8a2a/build/example.build.js#L641)。
 
+<a id="configShim"></a>
 **shim**：为没有使用 **define()** 声明依赖和模块值的传统“浏览器全局”脚本配置依赖、exports 和自定义初始化值。
 
 下面这个例子，需要 RequireJs 2.1.0+，并假定 backbone.js, underscore.js 和 jquery.js 安装在 baseUrl 目录中。如果它们在其他目录中，那么我们就需要为他们设定路径配置：
@@ -287,3 +288,36 @@ requirejs.config({
 **packages**：从 CommonJs 包中加载安装模块。详见 [packages 主题]()。
 
 **nodeIdCompat**：NodeJs 认为模块 ID ```example.js``` 和 ```example``` 是一样的。在 RequireJs 中默认认为这是两个不同的模块 ID。如果我们使用通过 npm 安装的模块，那么我们可能需要设定这项配置的值为 **true** 来避免解析问题。该选项仅用来处理 **.js** 后缀的差异。
+
+**waitSecond**：放弃脚本加载前的等待时间。设定为 **0** 禁用超时。默认为7s。
+
+**context**：在一个页面中允许 RequireJs 加载多个版本的模块，只要每个顶级的 require 调用指定唯一的上下文字符串。详见[多版本支持]()。
+
+**deps**：一个待加载依赖数组。当 require.js 加载前 require 作为一个配置对象被定义时，我们希望一旦 require() 被定义就进行依赖加载。使用 deps 配置就像使用 ```require([])``` 一样，但是加载器一旦完成配置处理就会执行。**它不会阻碍任何其他 require() 的调用**，它仅仅是指明[配置对象](#configBlock)中那些模块进行异步加载。
+
+**callback**：在 **deps** 指定的所有模块加载完成后执行的一个函数。在 require.js 加载前 require 作为一个配置对象被定义，同时我们希望在 **deps** 指定模块加载完成后再调用 require 函数加载某些模块时十分有用。
+
+**enforceDefine**：设定为 true 后，如果一个被加载模块没有使用 defined() 进行定义或者 [shim exports](#configShim) 字符串对应的模块值没有被检测到，则会抛出一个错误。
+
+**xhtml**：如果设置为true，则使用document.createElementNS()去创建script元素。
+
+**urlArgs**：向 RequireJs 用于请求资源的 URLs 后添加查询字符串参数。主要用于在浏览器或服务器配置错误时进行破坏缓存。
+```
+urlArgs: "bust=" +  (new Date()).getTime()
+```
+
+自 RequireJs 2.0.0 起，urlArgs 可以是一个函数。如果是一个函数，它将会接收一个模块 ID 和 URL 作为参数，同时他应该返回一个字符串，这个字符串会被添加到 URL 末端。在添加 '?' 或 '&' 时要根据现有 URL 的状态决定如何添加。
+```
+requirejs.config({
+    urlArgs: function(id, url) {
+        var args = 'v=1';
+        if (url.indexOf('view.html') !== -1) {
+            args = 'v=2'
+        }
+
+        return (url.indexOf('?') === -1 ? '?' : '&') + args;
+    }
+});
+```
+
+**scriptType**：指定 RequireJs 将 script 标签插入 document 时所用的 type="" 值。默认为“text/javascript”。想要启用Firefox 的 JavaScript 1.8特性，可使用值 “text/javascript;version=1.8”。
