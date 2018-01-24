@@ -297,7 +297,7 @@ requirejs.config({
 
 **callback**：在 **deps** 指定的所有模块加载完成后执行的一个函数。在 require.js 加载前 require 作为一个配置对象被定义，同时我们希望在 **deps** 指定模块加载完成后再调用 require 函数加载某些模块时十分有用。
 
-**enforceDefine**：设定为 true 后，如果一个被加载模块没有使用 defined() 进行定义或者 [shim exports](#configShim) 字符串对应的模块值没有被检测到，则会抛出一个错误。
+**enforceDefine**：设定为 true 后，如果一个被加载模块没有使用 defined() 进行定义同时 [shim exports](#configShim) 字符串对应的模块值没有被检测到，则会抛出一个错误。
 
 **xhtml**：如果设置为true，则使用document.createElementNS()去创建script元素。
 
