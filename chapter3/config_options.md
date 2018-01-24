@@ -49,6 +49,7 @@
 
 baseUrl 可以与加载 require.js 的页面的 URL 不同域。 RequireJs 可以跨域加载脚本。唯一的限制是通过 text! 插件加载文本内容：这些文本的路径应该同页面处于同一域中。优化工具中将会内置 text! 插件资源，所以在使用优化工具后我们可以使用 text! 插件从其它域引用的资源。
 
+<a id="paths"></a>
 **paths**：路径映射用于不能直接在 baseUrl 目录下直接找到的模块名。路径设置默认是相对于 baseUrl 的，除非路径设置以  "/" 或含有协议的 URL 例如( http:)。使用以上样例配置，"some/module" script 标签的 src="/another/path/some/v1.0/module.js"。用于模块名的路径不应该包含扩展名，因为路径映射应该是一个目录。当将一个模块名映射为路径时，路径映射代码会自动添加 .js 后缀。如果使用了[require.toUrl()](../chapter1/define_module.md#toUrl)，它会增加合适的扩展名。
 
 在浏览器中运行时，可以指定[备用路径]()，在尝试从 CDN 中加载文件失败后，会尝试从备用路径加载文件。
@@ -191,4 +192,98 @@ requirejs.config({
 1. 我们应该使用 **mainConfigFile** 构建选项指定包含 **shim** 配置的文件。否则优化器无法知道 **shim** 配置。其他选项会复制构建配置中的 **shim** 配置。
 2. 如果我们要在构建时对代码进行混淆，**不要**设定混淆 ```toplevel``` 选项为 **true**，或使用 cli 时**不要**传入 ```-mt```。这个选项会破坏 **shim** 用于查找 **exports** 的全局变量名。
 
-**maps**：
+**maps**：这个配置对于大型应用是很有用的，这种大型应用可能包含两套模块，同时这两个模块需要两个不同的版本的 'foo'，但它们之间任然需要彼此协作。
+
+通过[多版本支持]()无法实现上述功能。此外[paths 配置](#paths)只适用于为模块 ID 设置根路径，不是为了映射一个模块 ID 到另一个模块中存在的。
+```
+requirejs.config({
+    map: {
+        'some/newmodule': {
+            'foo': 'foo1.2'
+        },
+        'some/oldmodule': {
+            'foo': 'foo1.0'
+        }
+    }
+});
+```
+
+模块布局结构如下：
+```
+foo1.0.js
+foo1.2.js
+some/
+    newmodule.js
+    oldmodule.js
+```
+
+当'some/newmodule' 调用 `require('foo')` 时它将会去请求 **foo1.2.js** 文件，当'some/oldmodule' 调用 `require('foo')` 时它将会去请求 **foo1.0.js** 文件。
+该特性只适用于 AMD 模块，同时该模块为 **defined() 定义的一个匿名函数**。同时，map 配置只能使用**绝对模块ID**。相对 ID（例如：'../some/thing'）不起作用。
+
+同时也支持'*'映射值，它意味着：加载模块时，都使用这个 map 配置。如果含有多个map配置，那么其它配置会优先于'*'：
+```
+requirejs.config({
+    map: {
+        '*': {
+            'foo': 'foo1.2'
+        },
+        'some/oldmodule': {
+            'foo': 'foo1.0'
+        }
+    }
+});
+```
+除了 'some/oldmodule' 模块外的所有模块在请求 'foo' 时实际请求的是 'foo1.2'。对于 'some/oldmodule' 模块在请求 'foo' 时请求的是 'foo1.0'。
+
+<div style="color:red;">学习完optimizer后再进行翻译</div>
+在构建时，map 配置需要提供给优化器。
+
+**config**：通常用于将配置信息传递给模块。这些配置信息通常被当作应用的一部分，同时需要一种方式将它们向下传递至一个模块。在 RequireJs 中可以通过 requirejs.config() 中的 **config** 配置项完成。模块可以读取这些配置，通过引用特殊依赖 **module** 同时调用 **module.config()** 例如：
+```
+requirejs.config({
+    config: {
+        'bar': {
+            size: 'large'
+        },
+        'baz': {
+            color: 'blue'
+        }
+    }
+});
+
+//bar.js, which uses simplified CJS wrapping:
+define(function (require, exports, module) {
+    //Will be the value 'large'
+    var size = module.config().size;
+});
+
+//baz.js which uses a dependency array,
+//it asks for the special module ID, 'module':
+define(['module'], function (module) {
+    //Will be the value 'blue'
+    var color = module.config().color;
+});
+```
+
+传递配置到 [package]() 时，应该将 package 中的主模块作为目标，而不是 package ID：
+```
+requirejs.config({
+    // 向 pixie 包的主模块传递一个 API 键
+    config: {
+        'pixie/index': {
+            apiKey: 'XJKDLNS'
+        }
+    },
+    // 配置 pixie 包，它的主模块是 pixie 文件夹中的 index.js 文件
+    packages: [
+        {
+            name: 'pixie',
+            main: 'index'
+        }
+    ]
+});
+```
+
+**packages**：从 CommonJs 包中加载安装模块。详见 [packages 主题]()。
+
+**nodeIdCompat**：NodeJs 认为模块 ID ```example.js``` 和 ```example``` 是一样的。在 RequireJs 中默认认为这是两个不同的模块 ID。如果我们使用通过 npm 安装的模块，那么我们可能需要设定这项配置的值为 **true** 来避免解析问题。该选项仅用来处理 **.js** 后缀的差异。
